@@ -5,9 +5,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -15,8 +20,10 @@ import android.widget.Toast;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 
 public class filedata extends AppCompatActivity implements View.OnClickListener {
     public static final int REQUEST_CODE_STORAGE = 100;
@@ -48,7 +55,7 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
         eventID = 1;
         if (Build.VERSION.SDK_INT >= 24) {
             if (periksaIzinPenyimpanan()) {
-                bacaFile();
+               bacaFile();
             }
         } else {
             bacaFile();
@@ -76,10 +83,37 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
-    private void tampilkanDialogKonfirmasiPenyimpanan() {
+    private void tampilkanDialogKonfirmasiPenyimpanan()
+    {
+        new AlertDialog.Builder(this)
+                .setTitle("Simpan Catatan")
+                .setMessage("Apakah yakin ingin menyimpan Catatan ini?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        buatDanUbah();
+                    }
+                }).setNegativeButton(android.R.string.no,null).show();
     }
 
-    private void bacaFile() {
+    @Override
+    public void onBackPressed(){
+        if(!tempCatatan.equals(editContent.getText().toString())){
+            tampilkanDialogKonfirmasiPenyimpanan();
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    public  boolean onOptionsItemSelected(MenuItem item){
+        if (item.getItemId()== android.R.id.home){
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    void bacaFile() {
         String path = getExternalFilesDir(null)+"/catatan";
         File file = new File(path,editFileName.getText().toString());
         if (file.exists()){
@@ -117,17 +151,60 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult){
         super.onRequestPermissionsResult(requestCode,permissions,grantResult);
         switch (requestCode){
             case REQUEST_CODE_STORAGE:
-                if (grantResult[0]==PackageManager.PERMISSION_GRANTED){
-                    bacaFile();
-                }else {
-                    tampilkanDialogKonfirmasiPenyimpanan();
+                if (grantResult[0]==PackageManager.PERMISSION_GRANTED) {
+                    if (eventID==1){
+                        bacaFile();
+                    }else {
+                        tampilkanDialogKonfirmasiPenyimpanan();
+                    }
                 }
                 break;
         }
     }
 
+    void buatDanUbah(){
+        String state = Environment.getExternalStorageState();
+        if (!Environment.MEDIA_MOUNTED.equals(state)){
+            return;
+        }
+        String path = getExternalFilesDir(null)+"/catatan";
+        File parent = new File(path);
+        if (parent.exists()){
+            File file = new File(path,editFileName.getText().toString());
+            FileOutputStream outputStream = null;
+            try {
+                file.createNewFile();
+                outputStream = new FileOutputStream(file);
+                OutputStreamWriter streamWriter = new OutputStreamWriter(outputStream);
+                streamWriter.append(editContent.getText());
+                streamWriter.flush();
+                streamWriter.close();
+                outputStream.flush();
+                outputStream.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }else {
+            try {
+                Log.i("PATH", "CREATE DIR");
+
+                parent.mkdir();
+                File file = new File(path, editFileName.getText().toString());
+                FileOutputStream outputStream = null;
+                file.createNewFile();
+                outputStream = new FileOutputStream(file,false);
+                outputStream.write(editContent.getText().toString().getBytes());
+                outputStream.flush();
+                outputStream.close();
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        this.finish();
+    }
 }

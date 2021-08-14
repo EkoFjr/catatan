@@ -43,7 +43,7 @@ public class menu extends AppCompatActivity {
             {
                 Intent intent = new Intent(menu.this,filedata.class);
                 Map<String,Object> data = (Map<String,Object>)parent.getAdapter().getItem(position);
-                intent.putExtra("filename",data.get("name").toString());
+                intent.putExtra("filname",data.get("name").toString());
                 Toast.makeText(menu.this, "You clicked"+data.get("name"), Toast.LENGTH_SHORT).show();
                 startActivity(intent);
             }
@@ -51,10 +51,9 @@ public class menu extends AppCompatActivity {
 
         listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) 
-            {
-                Map<String,Object> data =(Map<String,Object>)parent.getAdapter().getItem(position);
-                tampilkanDialogKonfirmasiHapusCatatan(data.get("name"),toString());
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                Map<String,Object> data = (Map<String, Object>)parent.getAdapter().getItem(position);
+                tampilkanDialogKonfirmasiHapusCatatan(data.get("name").toString());
                 return true;
             }
         });
@@ -87,7 +86,8 @@ public class menu extends AppCompatActivity {
         }
     }
 
-    public void onRequestPermissionResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult)
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult)
     {
         super.onRequestPermissionsResult(requestCode, permissions,grantResult);
         switch (requestCode)
@@ -145,7 +145,7 @@ public class menu extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    void tampilkanDialogKonfirmasiHapusCatatan(Object name, String toString)
+    void tampilkanDialogKonfirmasiHapusCatatan(final String filename)
     {
         new AlertDialog.Builder(this).setTitle("Hapus Catatan ini ?")
                 .setMessage("Apakah Anda yakin ingin menghapus Catatan"+ filename +"?")
