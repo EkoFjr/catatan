@@ -18,7 +18,9 @@ public class Opening extends AppCompatActivity {
             @Override
             public void run() {
                 Intent i =new Intent(Opening.this,menu.class);
+                startActivity(i);
+                finish();
             }
-        },3000);
+        },300);
     }
 }
