@@ -3,7 +3,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/Tambah"
-        android:title="Item"
-        tools:icon="@android:drawable/ic_menu_add" />
+        android:id="@+id/action_tambah"
+        android:title="@string/tambah1"
+        app:showAsAction="always"
+        tools:icon="@android:drawable/ic_menu_add"
+        tools:visible="true" />
 </menu>

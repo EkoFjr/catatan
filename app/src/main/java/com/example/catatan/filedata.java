@@ -30,7 +30,7 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
     int eventID = 0;
     EditText editFileName, editContent;
     Button btnSimpan;
-    String fileName = " ", tempCatatan = " ";
+    String fileName = "", tempCatatan = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,7 +43,7 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
 
         btnSimpan.setOnClickListener(this);
         Bundle extras = getIntent().getExtras();
-        if (extras != null) {
+        if (extras!= null) {
             getSupportActionBar().setTitle("Ubah Catatan");
             fileName = extras.getString("filename");
             editFileName.setText(fileName);
@@ -83,34 +83,35 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
-    private void tampilkanDialogKonfirmasiPenyimpanan()
-    {
-        new AlertDialog.Builder(this)
-                .setTitle("Simpan Catatan")
-                .setMessage("Apakah yakin ingin menyimpan Catatan ini?")
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        buatDanUbah();
+    public boolean periksaIzinPenyimpanan() {
+        if (Build.VERSION.SDK_INT >= 24) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        REQUEST_CODE_STORAGE);
+                return false;
+            }
+        }else {
+            return true;
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult){
+        super.onRequestPermissionsResult(requestCode,permissions,grantResult);
+        switch (requestCode){
+            case REQUEST_CODE_STORAGE:
+                if (grantResult[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (eventID == 1 ){
+                        bacaFile();
+                    }else {
+                        tampilkanDialogKonfirmasiPenyimpanan();
                     }
-                }).setNegativeButton(android.R.string.no,null).show();
-    }
-
-    @Override
-    public void onBackPressed(){
-        if(!tempCatatan.equals(editContent.getText().toString())){
-            tampilkanDialogKonfirmasiPenyimpanan();
+                }
+                break;
         }
-        super.onBackPressed();
-    }
-
-    @Override
-    public  boolean onOptionsItemSelected(MenuItem item){
-        if (item.getItemId()== android.R.id.home){
-            onBackPressed();
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     void bacaFile() {
@@ -121,10 +122,9 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line = br.readLine();
-                while (line != null) {
-
+                while (line!= null) {
                     text.append(line);
-                    line=br.readLine();
+                    line = br.readLine();
                 }
                 br.close();
             }catch (IOException e){
@@ -132,38 +132,6 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
             }
             tempCatatan=text.toString();
             editContent.setText(text.toString());
-        }
-    }
-
-    private boolean periksaIzinPenyimpanan() {
-        if (Build.VERSION.SDK_INT >= 24) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                ;
-                return true;
-            } else {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                        REQUEST_CODE_STORAGE);
-                return false;
-            }
-        }else {
-            return false;
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult){
-        super.onRequestPermissionsResult(requestCode,permissions,grantResult);
-        switch (requestCode){
-            case REQUEST_CODE_STORAGE:
-                if (grantResult[0]==PackageManager.PERMISSION_GRANTED) {
-                    if (eventID==1){
-                        bacaFile();
-                    }else {
-                        tampilkanDialogKonfirmasiPenyimpanan();
-                    }
-                }
-                break;
         }
     }
 
@@ -207,4 +175,37 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
         }
         this.finish();
     }
+
+
+    private void tampilkanDialogKonfirmasiPenyimpanan()
+    {
+        new AlertDialog.Builder(this)
+                .setTitle("Simpan Catatan")
+                .setMessage("Apakah yakin ingin menyimpan Catatan ini?")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        buatDanUbah();
+                    }
+                }).setNegativeButton(android.R.string.no,null).show();
+    }
+
+
+    @Override
+    public void onBackPressed(){
+        if(!tempCatatan.equals(editContent.getText().toString())){
+            tampilkanDialogKonfirmasiPenyimpanan();
+        }
+        super.onBackPressed();
+    }
+
+    @Override
+    public  boolean onOptionsItemSelected(MenuItem item){
+        if (item.getItemId() == android.R.id.home){
+            onBackPressed();
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+
 }

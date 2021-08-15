@@ -21,6 +21,6 @@ public class Opening extends AppCompatActivity {
                 startActivity(i);
                 finish();
             }
-        },300);
+        },2000);
     }
 }

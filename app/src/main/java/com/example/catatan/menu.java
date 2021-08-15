@@ -5,12 +5,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,7 +30,15 @@ import java.util.Map;
 
 public class menu extends AppCompatActivity {
     ListView listview;
+
     public static final int REQUEST_CODE_STORAGE = 100;
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.tambah,menu);
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +46,7 @@ public class menu extends AppCompatActivity {
         getSupportActionBar().setTitle("Catatan");
         setContentView(R.layout.activity_menu);
 
-        listview = (ListView) findViewById(R.id.tampil);
+        listview = findViewById(R.id.tampil);
         listview.setOnItemClickListener(new AdapterView.OnItemClickListener()
         {
             @Override
@@ -49,7 +60,8 @@ public class menu extends AppCompatActivity {
             }
         });
 
-        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
+        {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                 Map<String,Object> data = (Map<String, Object>)parent.getAdapter().getItem(position);
@@ -74,7 +86,7 @@ public class menu extends AppCompatActivity {
     {
         if(Build.VERSION.SDK_INT>=24)
         {
-            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED){
+            if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
                 return true;
             }else {
                 ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
@@ -89,7 +101,7 @@ public class menu extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult)
     {
-        super.onRequestPermissionsResult(requestCode, permissions,grantResult);
+        super.onRequestPermissionsResult(requestCode,permissions,grantResult);
         switch (requestCode)
         {
             case REQUEST_CODE_STORAGE:
@@ -108,10 +120,10 @@ public class menu extends AppCompatActivity {
 
         if (directory.exists())
         {
-            File[]files=directory.listFiles();
+            File[]files= directory.listFiles();
             String[] filenames = new String[files.length];
             String[] dateCreated = new String[files.length];
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM YYYY HH:mm:ss");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
             ArrayList<Map<String,Object>> itemDataList = new ArrayList<Map<String, Object>>();
 
             for (int i=0;i <files.length; i++)
@@ -120,27 +132,27 @@ public class menu extends AppCompatActivity {
                 Date lasModDate = new Date(files[i].lastModified());
                 dateCreated[i] = simpleDateFormat.format(lasModDate);
 
-                Map<String,Object> listitemMap = new HashMap<>();
-                listitemMap.put("name",filenames[i]);
-                listitemMap.put("date", dateCreated[i]);
-                itemDataList.add(listitemMap);
+                Map<String,Object> listItemMap = new HashMap<>();
+                listItemMap.put("name",filenames[i]);
+                listItemMap.put("date",dateCreated[i]);
+                itemDataList.add(listItemMap);
             }
 
             SimpleAdapter simpleAdapter = new SimpleAdapter(this,itemDataList, android.R.layout.simple_list_item_2,
-                    new String[]{"nama","date"},new int[]{android.R.id.text1,android.R.id.text2});
+                    new String[]{"name","date"},new int[]{android.R.id.text1,android.R.id.text2});
             listview.setAdapter(simpleAdapter);
             simpleAdapter.notifyDataSetChanged();
         }
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item)
-    {
-        switch(item.getItemId()){
-            case R.id.Tambah:
-                Intent i = new Intent(this,filedata.class);
-                startActivity(i);
-                break;
+   public boolean onOptionsItemSelected(@NonNull MenuItem item){
+        switch (item.getItemId()) {
+            case R.id.action_tambah:
+            Intent i = new Intent(this, filedata.class);
+            startActivity(i);
+            break;
         }
         return super.onOptionsItemSelected(item);
     }

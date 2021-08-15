@@ -1,7 +1,8 @@
 <resources>
     <string name="app_name">catatan</string>
     <string name="catatan">Catatan</string>
-    <string name="nama_file">Nama File</string>
+    <string name="nama_file">Nama File :</string>
     <string name="catatan1">Catatan :</string>
     <string name="simpan">Simpan</string>
+    <string name="tambah1">Tambah</string>
 </resources>
