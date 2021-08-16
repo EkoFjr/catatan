@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -145,7 +144,6 @@ public class menu extends AppCompatActivity {
         }
     }
 
-    @SuppressLint("NonConstantResourceId")
     @Override
    public boolean onOptionsItemSelected(@NonNull MenuItem item){
         switch (item.getItemId()) {
