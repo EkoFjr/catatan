@@ -1,11 +1,11 @@
 package com.example.catatan;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -28,34 +28,31 @@ import java.io.OutputStreamWriter;
 public class filedata extends AppCompatActivity implements View.OnClickListener {
     public static final int REQUEST_CODE_STORAGE = 100;
     int eventID = 0;
-    EditText editFileName, editContent;
+    EditText editFilename, editContent;
     Button btnSimpan;
-    String fileName = "", tempCatatan = "";
-
+    String filename = "", tempCatatan = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_filedata);
 
-        editFileName = findViewById(R.id.editFilename);
+        editFilename = findViewById(R.id.editFilename);
         editContent = findViewById(R.id.editContent);
         btnSimpan = findViewById(R.id.simpan);
-
         btnSimpan.setOnClickListener(this);
         Bundle extras = getIntent().getExtras();
-        if (extras!= null) {
+        if (extras != null) {
             getSupportActionBar().setTitle("Ubah Catatan");
-            fileName = extras.getString("filename");
-            editFileName.setText(fileName);
-            editFileName.setEnabled(false);
+            filename = extras.getString("filename");
+            editFilename.setText(filename);
+            editFilename.setEnabled(false);
         } else {
             getSupportActionBar().setTitle("Tambah Catatan");
         }
-
         eventID = 1;
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (Build.VERSION.SDK_INT >= 23) {
             if (periksaIzinPenyimpanan()) {
-               bacaFile();
+                bacaFile();
             }
         } else {
             bacaFile();
@@ -68,7 +65,7 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
             case R.id.simpan:
                 eventID = 2;
                 if (!tempCatatan.equals(editContent.getText().toString())) {
-                    if (Build.VERSION.SDK_INT >= 24) {
+                    if (Build.VERSION.SDK_INT >= 23) {
                         if (periksaIzinPenyimpanan()) {
                             tampilkanDialogKonfirmasiPenyimpanan();
                         }
@@ -84,7 +81,7 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
     }
 
     public boolean periksaIzinPenyimpanan() {
-        if (Build.VERSION.SDK_INT >= 24) {
+        if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
                 return true;
@@ -93,20 +90,21 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
                         REQUEST_CODE_STORAGE);
                 return false;
             }
-        }else {
+        } else {
             return true;
+
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult){
-        super.onRequestPermissionsResult(requestCode,permissions,grantResult);
-        switch (requestCode){
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
             case REQUEST_CODE_STORAGE:
-                if (grantResult[0] == PackageManager.PERMISSION_GRANTED) {
-                    if (eventID == 1 ){
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if (eventID == 1) {
                         bacaFile();
-                    }else {
+                    } else {
                         tampilkanDialogKonfirmasiPenyimpanan();
                     }
                 }
@@ -115,35 +113,34 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
     }
 
     void bacaFile() {
-        String path = getExternalFilesDir(null)+"/catatan";
-        File file = new File(path,editFileName.getText().toString());
-        if (file.exists()){
+        String path = getExternalFilesDir(null) + "/catatan";
+        File file = new File(path, editFilename.getText().toString());
+        if (file.exists()) {
             StringBuilder text = new StringBuilder();
             try {
                 BufferedReader br = new BufferedReader(new FileReader(file));
                 String line = br.readLine();
-                while (line!= null) {
+                while (line != null) {
                     text.append(line);
                     line = br.readLine();
                 }
-                br.close();
-            }catch (IOException e){
-                System.out.println("Error"+ e.getMessage());
+            } catch (IOException e) {
+                System.out.println("Error " + e.getMessage());
             }
-            tempCatatan=text.toString();
+            tempCatatan = text.toString();
             editContent.setText(text.toString());
         }
     }
 
-    void buatDanUbah(){
+    void buatDanUbah() {
         String state = Environment.getExternalStorageState();
-        if (!Environment.MEDIA_MOUNTED.equals(state)){
+        if (!Environment.MEDIA_MOUNTED.equals(state)) {
             return;
         }
-        String path = getExternalFilesDir(null)+"/catatan";
+        String path = getExternalFilesDir(null) + "/catatan";
         File parent = new File(path);
-        if (parent.exists()){
-            File file = new File(path,editFileName.getText().toString());
+        if (parent.exists()) {
+            File file = new File(path, editFilename.getText().toString());
             FileOutputStream outputStream = null;
             try {
                 file.createNewFile();
@@ -154,58 +151,54 @@ public class filedata extends AppCompatActivity implements View.OnClickListener 
                 streamWriter.close();
                 outputStream.flush();
                 outputStream.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
-        }else {
+        } else {
             try {
                 Log.i("PATH", "CREATE DIR");
 
-                parent.mkdir();
-                File file = new File(path, editFileName.getText().toString());
+                parent.mkdirs();
+                File file = new File(path, editFilename.getText().toString());
                 FileOutputStream outputStream = null;
                 file.createNewFile();
-                outputStream = new FileOutputStream(file,false);
+                outputStream = new FileOutputStream(file, false);
                 outputStream.write(editContent.getText().toString().getBytes());
                 outputStream.flush();
                 outputStream.close();
-            }catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
         this.finish();
     }
 
-
-    private void tampilkanDialogKonfirmasiPenyimpanan()
-    {
+    void tampilkanDialogKonfirmasiPenyimpanan() {
         new AlertDialog.Builder(this)
                 .setTitle("Simpan Catatan")
-                .setMessage("Apakah yakin ingin menyimpan Catatan ini?")
+                .setMessage("Apakah anda yakin ingin menyimpan cacatan ini?")
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {
                         buatDanUbah();
                     }
-                }).setNegativeButton(android.R.string.no,null).show();
+                }).setNegativeButton(android.R.string.no, null).show();
     }
 
-
     @Override
-    public void onBackPressed(){
-        if(!tempCatatan.equals(editContent.getText().toString())){
+    public void onBackPressed() {
+        if (!tempCatatan.equals(editContent.getText().toString())) {
             tampilkanDialogKonfirmasiPenyimpanan();
         }
         super.onBackPressed();
     }
 
     @Override
-    public  boolean onOptionsItemSelected(MenuItem item){
-        if (item.getItemId() == android.R.id.home){
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
             onBackPressed();
         }
         return super.onOptionsItemSelected(item);
     }
-
 
 }

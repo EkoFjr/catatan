@@ -1,16 +1,17 @@
 package com.example.catatan;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,16 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class menu extends AppCompatActivity {
-    ListView listview;
-
     public static final int REQUEST_CODE_STORAGE = 100;
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.tambah,menu);
-        return true;
-    }
+    ListView listView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,25 +38,23 @@ public class menu extends AppCompatActivity {
         getSupportActionBar().setTitle("Catatan");
         setContentView(R.layout.activity_menu);
 
-        listview = findViewById(R.id.tampil);
-        listview.setOnItemClickListener(new AdapterView.OnItemClickListener()
-        {
+        listView = findViewById(R.id.tampil);
+
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id)
-            {
-                Intent intent = new Intent(menu.this,filedata.class);
-                Map<String,Object> data = (Map<String,Object>)parent.getAdapter().getItem(position);
-                intent.putExtra("filname",data.get("name").toString());
-                Toast.makeText(menu.this, "You clicked"+data.get("name"), Toast.LENGTH_SHORT).show();
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(menu.this, filedata.class);
+                Map<String, Object> data = (Map<String, Object>) parent.getAdapter().getItem(position);
+                intent.putExtra("filename", data.get("name").toString());
+                Toast.makeText(menu.this, "you clicked " + data.get("name"), Toast.LENGTH_SHORT).show();
                 startActivity(intent);
             }
         });
-
-        listview.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener()
-        {
+        listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Map<String,Object> data = (Map<String, Object>)parent.getAdapter().getItem(position);
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long l) {
+                Map<String, Object> data = (Map<String, Object>) parent.getAdapter().getItem(position);
                 tampilkanDialogKonfirmasiHapusCatatan(data.get("name").toString());
                 return true;
             }
@@ -71,109 +62,111 @@ public class menu extends AppCompatActivity {
     }
 
     @Override
-    protected void onResume(){
+    protected void onResume() {
         super.onResume();
-        if (Build.VERSION.SDK_INT>=24){
-            if (periksaIzinPenyimpanan()){
-                megambilListFilePadaFolder();
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (periksaIzinPenyimpanan()) {
+                mengambilListFilePadaFolder();
             }
-        }else {
-            megambilListFilePadaFolder();
+        } else {
+            mengambilListFilePadaFolder();
         }
     }
-    private boolean periksaIzinPenyimpanan()
-    {
-        if(Build.VERSION.SDK_INT>=24)
-        {
+
+    public boolean periksaIzinPenyimpanan(){
+        if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED){
                 return true;
-            }else {
-                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+            }else{
+                ActivityCompat.requestPermissions(this, new String[]{ Manifest.permission.WRITE_EXTERNAL_STORAGE},
                         REQUEST_CODE_STORAGE);
                 return false;
             }
-        }else {
+        }else{
             return true;
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResult)
-    {
-        super.onRequestPermissionsResult(requestCode,permissions,grantResult);
-        switch (requestCode)
-        {
-            case REQUEST_CODE_STORAGE:
-                if (grantResult[0]==PackageManager.PERMISSION_GRANTED)
-                {
-                    megambilListFilePadaFolder();
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case REQUEST_CODE_STORAGE :
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                    mengambilListFilePadaFolder();
                 }
                 break;
         }
     }
 
-    void megambilListFilePadaFolder()
-    {
-        String path = getExternalFilesDir(null)+"/catatan";
+    void mengambilListFilePadaFolder() {
+        String path = getExternalFilesDir(null) + "/catatan";
         File directory = new File(path);
 
-        if (directory.exists())
-        {
-            File[]files= directory.listFiles();
+        if (directory.exists()) {
+            File[] files = directory.listFiles();
             String[] filenames = new String[files.length];
             String[] dateCreated = new String[files.length];
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
-            ArrayList<Map<String,Object>> itemDataList = new ArrayList<Map<String, Object>>();
+            ArrayList<Map<String, Object>> itemDataList = new ArrayList<Map<String, Object>>();
 
-            for (int i=0;i <files.length; i++)
-            {
+            for (int i = 0; i < files.length; i++) {
                 filenames[i] = files[i].getName();
-                Date lasModDate = new Date(files[i].lastModified());
-                dateCreated[i] = simpleDateFormat.format(lasModDate);
+                Date lastModDate = new Date(files[i].lastModified()); //import java.util
+                dateCreated[i] = simpleDateFormat.format(lastModDate);
 
-                Map<String,Object> listItemMap = new HashMap<>();
-                listItemMap.put("name",filenames[i]);
-                listItemMap.put("date",dateCreated[i]);
+                Map<String, Object> listItemMap = new HashMap<>();
+                listItemMap.put("name", filenames[i]);
+                listItemMap.put("date", dateCreated[i]);
                 itemDataList.add(listItemMap);
             }
 
-            SimpleAdapter simpleAdapter = new SimpleAdapter(this,itemDataList, android.R.layout.simple_list_item_2,
-                    new String[]{"name","date"},new int[]{android.R.id.text1,android.R.id.text2});
-            listview.setAdapter(simpleAdapter);
+            SimpleAdapter simpleAdapter = new SimpleAdapter(this, itemDataList, android.R.layout.simple_list_item_2,
+                    new String[]{"name", "date"}, new int[]{android.R.id.text1, android.R.id.text2});
+            listView.setAdapter(simpleAdapter);
             simpleAdapter.notifyDataSetChanged();
         }
     }
 
     @Override
-   public boolean onOptionsItemSelected(@NonNull MenuItem item){
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_tambah:
-            Intent i = new Intent(this, filedata.class);
-            startActivity(i);
-            break;
+                Intent i = new Intent(this, filedata.class);
+                startActivity(i);
+                break;
         }
         return super.onOptionsItemSelected(item);
+
     }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.tambah, menu);
+        return true;
+    }
+
 
     void tampilkanDialogKonfirmasiHapusCatatan(final String filename)
     {
-        new AlertDialog.Builder(this).setTitle("Hapus Catatan ini ?")
-                .setMessage("Apakah Anda yakin ingin menghapus Catatan"+ filename +"?")
+        new AlertDialog.Builder(this).setTitle("Hapus Catatan Ini?")
+                .setMessage("Apakah Anda Yakin Ingin Menghapus Catatan " + filename + "?")
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener()
-                {
-                    public void onClick(DialogInterface dialog, int which) {
+                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
                         hapusFile(filename);
                     }
-                }).setNegativeButton(android.R.string.no,null).show();
+                }).setNegativeButton(android.R.string.no, null).show();
     }
 
-    void hapusFile(String filename){
-        String path = getExternalFilesDir(null)+"/catatan";
-        File file = new File(path,filename);
-        if (file.exists()){
+    void hapusFile(String filename) {
+        String path = getExternalFilesDir(null) + "/catatan";
+        File file = new File(path, filename);
+        if (file.exists()) {
             file.delete();
         }
-        megambilListFilePadaFolder();
+        mengambilListFilePadaFolder();
     }
+
 }
